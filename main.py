@@ -275,7 +275,7 @@ def make_a_move(event, window, frame, score_label):
         if player_one == chess.BLACK:
             uci =reverse_uci(uci,alphabet)
 
-        #promotion
+
 
 
                 # waittil = IntVar()
