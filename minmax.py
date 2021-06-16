@@ -185,66 +185,7 @@ def minimax3(board, depth,ogdebth,nested_checkmate_list):
 
         return mineval,0,nested_checkmate_list
 
-def minimaxscore(board, depth):#, alpha, beta):
 
-    if board.is_checkmate() or depth ==0:
-        e= evaluate(board)
-        print(e)
-        return e#evaluate(board)#,0
-    if depth ==3:
-        amount_of_legal_moves=0
-        legalmoveslist =[]
-        for move in board.legal_moves:
-            amount_of_legal_moves+=1
-            legalmoveslist.append(move)
-        bestmove =legalmoveslist[r.randint(0,amount_of_legal_moves-1)]
-    else:
-        bestmove =0
-
-
-    if board.turn == chess.WHITE:
-        #max
-        maxeval = -100000
-
-        for move in board.legal_moves:
-
-            board.push(move)
-            # currenteval,badmove = minimax3(board, depth - 1)#, alpha, beta)
-            currenteval = minimax3(board, depth - 1)#, alpha, beta)
-
-            if currenteval > maxeval:
-                maxeval = currenteval
-                #bestmove =move
-            #maxeval = max(currenteval,maxeval)
-            # alpha = max(currenteval,alpha)
-            # if currenteval == maxeval:
-            #     bestmove =move
-            board.pop()
-
-            # if alpha >= beta:
-            #     break
-
-
-        return maxeval#,bestmove
-
-    else:
-        #min
-        mineval = 100000
-        for move in board.legal_moves:
-            board.push(move)
-            #currenteval,badmove = minimax3(board, depth - 1)#, alpha, beta)
-            currenteval = minimax3(board, depth - 1)#, alpha, beta)
-
-            if currenteval < mineval:
-                mineval = currenteval
-
-
-            # beta = min(currenteval,beta)
-            board.pop()
-            # if alpha >= beta:
-            #     break
-
-        return mineval#,0    #bestmove
 
 def evaluate(board):
     start =0
