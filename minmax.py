@@ -3,26 +3,20 @@ import random as r
 #engine
 def make_a_good_move(board):
     print("making a good move from mm")
-    #print(board.board_fen())
-    # l=[]
-    # for move in board.legal_moves:
-    #     l.append(move)
-    #
-    # r=random.randint(0,len(l)-1)
-    # print("r",r)
-    # print("len(l)",len(l))
-    # board.push(minimax2(board,3)[1])
-    board.push(minimax(board))
-    # uci = "e2e4"
-    #return "a7a5"
+
+    board.push(minimax(board,False))
 
 
-def minimax(board):
+
+def minimax(board,abp):
     #wrapper of minimax
-    return minimax2(board, 3, -100000, 100000)[1]
-
+    if abp:
+        return minimax2(board, 3, -100000, 100000)[1]
+    else:
+        return minimax_without_abp(board,3)[1]
 
 def minimax2(board, depth, alpha, beta):
+    '''minimax algorithm that cant deal with checkmate works sometimes because of the alpha beta pruning'''
     if board.is_checkmate() or depth ==0:
         return evaluate(board),0
     bestmove =0
@@ -58,17 +52,68 @@ def minimax2(board, depth, alpha, beta):
             board.pop()
             if alpha >= beta:
                 break
+            if currenteval == mineval:
+                bestmove =move
 
-        return mineval,0
+        return mineval,bestmove
+
+def minimax_without_abp(board, depth):
+    '''minimax algorithm that cant deal with checkmate but works'''
+    if board.is_checkmate() or depth ==0:
+        return evaluate(board),0
+    bestmove =0
+    if board.turn == chess.WHITE:
+        #max
+        maxeval = -100000
+
+        for move in board.legal_moves:
+            if bestmove == 0:
+                bestmove = move
+            board.push(move)
+            currenteval,badmove = minimax_without_abp(board, depth - 1)
+            maxeval = max(currenteval,maxeval)
+
+            board.pop()
+
+
+            if currenteval == maxeval:
+                bestmove =move
+
+        return maxeval,bestmove
+
+    else:
+        #min
+        mineval = 100000
+        for move in board.legal_moves:
+            board.push(move)
+            currenteval,badmove = minimax_without_abp(board, depth - 1)
+            mineval = min(currenteval,mineval)
+            board.pop()
+
+            if currenteval == mineval:
+                bestmove =move
+
+        return mineval,bestmove
 
 def minimax4(board):
     #wrapper of minimax
     m = minimax3(board, 4,4,[])
-    #[[Move.from_uci('a5a8'), Move.from_uci('h8g8'), Move.from_uci('b6b7')], [Move.from_uci('b6b8'), Move.from_uci('h8g8'), Move.from_uci('a5a7')]]
+
     print("checkmatelist:",m[2])
     return m[1]
 
+
+###
+# I am currently working on the algoritm below and after it works i will try to implement abp
+###
+
+
 def minimax3(board, depth,ogdebth,nested_checkmate_list):
+    '''minimax algoritm that does not really work without abp where i tried to save the moves that lead to checkmate
+    debth : how many levels of branches the algorithm has left to go into moves tree
+    ogdebth : how many levels of branches the plan was to evaluate at the call of the algorithm
+    nested_checkmate_list : a list supposed to contain lists with moves that would lead to checkmate
+    '''
     if depth ==0:
         e= evaluate(board)
 
@@ -78,9 +123,6 @@ def minimax3(board, depth,ogdebth,nested_checkmate_list):
         e= evaluate(board)
         checkmate_list = []
         for i in range(-1,-1*(ogdebth-depth),-1):
-            # print("ogdebht",ogdebth)
-            # print("debth",depth)
-            # print("i",i)
             checkmate_list.append(board.move_stack[i])
         checkmate_list.append("checkmatelist with fen of :"+board.board_fen())
         nested_checkmate_list.append(checkmate_list)
@@ -101,9 +143,6 @@ def minimax3(board, depth,ogdebth,nested_checkmate_list):
     if board.turn == chess.WHITE:
         #max
         maxeval = -100000
-        # print("max, aka white")
-        # print(board.move_stack)
-        # print(board.legal_moves)
         for move in board.legal_moves:
 
             board.push(move)
@@ -111,9 +150,6 @@ def minimax3(board, depth,ogdebth,nested_checkmate_list):
                 #moves toevoegen per list en dan kijken welke de snelste checkmate is
                 checkmate_list = []
                 for i in range(-1,-1*(ogdebth-depth)-2,-1):
-                    # print("ogdebht",ogdebth)
-                    # print("debth",depth)
-                    # print("i",i)
                     checkmate_list.append(board.move_stack[i])
                 checkmate_list.append("checkmatelist with fen of :"+board.board_fen())
                 nested_checkmate_list.append(checkmate_list)
@@ -123,14 +159,9 @@ def minimax3(board, depth,ogdebth,nested_checkmate_list):
 
             currenteval,badmove,nested_checkmate_list = minimax3(board, depth - 1,ogdebth,nested_checkmate_list)#, alpha, beta)
             if currenteval == 1000:
-                #print("bestmove is mat")
                 bestmove =move
-            # if board.is_checkmate():
-            #     print("checkmate",board.board_fen())
-            #     currenteval = 1000
             if currenteval > maxeval:
                 maxeval = currenteval
-                #print("bestmove is niet mat")
                 bestmove =move
 
             board.pop()
@@ -143,19 +174,11 @@ def minimax3(board, depth,ogdebth,nested_checkmate_list):
     else:
         #min
         mineval = 100000
-        if board.is_check():
-            print("min, aka black")
-            print(board.move_stack)
-            print(board.legal_moves)
         for move in board.legal_moves:
             board.push(move)
-            currenteval,badmove,nested_checkmate_list = minimax3(board, depth - 1,ogdebth,nested_checkmate_list)#, alpha, beta)
-            # if board.is_checkmate():
-            #     print("checkmate",board.board_fen())
-            #     currenteval = -1000
+            currenteval,badmove,nested_checkmate_list = minimax3(board, depth - 1,ogdebth,nested_checkmate_list)
             if currenteval < mineval:
                 mineval = currenteval
-                #bestmove =move
 
             board.pop()
 
@@ -248,29 +271,40 @@ def evaluate(board):
                     start+=9
     else:
         if board.turn == chess.WHITE:
-            print("evalated mat black won")
             return -1000
         else:
-            print("evalated mat white won")
             return 1000
 
     return start
 
 
+
+#below is a simple test for minimax to see what they would do in a "checkmate in 2 scenario"
+
+
+
+
 board = chess.Board("7k/8/1R6/R7/8/8/8/7K")
 print(board.status())
 print(board.board_fen())
-# board.push_uci("e4d5")
+
 print(board.turn == chess.BLACK)
-m =minimax4(board)
-print("score = ",m)
+m4 =minimax4(board)
+print("minimax 4 suggested move ",m4)
+print("minimax 2 suggested move ",minimax(board,True))
+print("minimax without abp sugggested move",minimax(board,False))
+board.push_uci("a5a7")
+board.push_uci("h8g8")
+
+m4 =minimax4(board)
+print("minimax 4 suggested move ",m4)
+print("minimax 2 suggested move ",minimax(board,True))
+print("minimax without abp sugggested move",minimax(board,False))
 # print(m in board.legal_moves)
 print(board.legal_moves)
-board.push_uci("a5a8")
-print(board.legal_moves)
+
 
 print(board.board_fen())
-print(evaluate(board))
-# board.push_uci("d6d8")
 
-print(evaluate(board))
+
+
