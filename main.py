@@ -1,85 +1,97 @@
 from tkinter import *
+from tkinter import messagebox
 import chess
 import minmax as mm
 
 
-# TODO fix score
-# TODO let player choose a piece for promotion
-# TODO implement MINIMAX
-# TODO write tests
-
-first_request=[]
-currentscore = "0-0"
 
 
 
+# TODO pushen naar github
+# TODO minimax documentatie
+# TODO weghalen prints
+# TODO projectsamenvatting
+# TODO planning bijwerken
+# TODO poster maken
+# TODO copyright toevoegen
+
+
+# TODO code nog twee keer nalopen
 
 #gui
 def game():
     '''
-    lets you play a chess game.
-
+    Initiates board and starts chess game
     '''
 
     #making board
     global board
+    global first_request
+    first_request =[]
     board = chess.Board()
-
-    #generating window and frame
-    print(board.result())
-    window,frame,scorelabel = display_board(currentscore)
-    choose_starting_color(window,frame,scorelabel)
-
-    #refresh_board(window,frame,board.board_fen(),scorelabel)
+    window,frame = display_board()
+    choose_starting_color(window,frame)
 
 
-
-
-def choose_starting_color(window,frame,scorelabel):
-    whitebutton =Button(window, text="click here to start as white", command= lambda : player_one_color(True, whitebutton, blackbutton, window, frame, scorelabel))
-    blackbutton =Button(window, text="click here to start as black", command= lambda : player_one_color(False, whitebutton, blackbutton, window, frame, scorelabel))
+def choose_starting_color(window,frame):
+    '''
+    Lets player choose starting color
+    calls player_one_color when a button is clicked
+    :param window: tkinter window used to display frame
+    :param frame: tkinter frame used to display chessboard and pieces
+    '''
+    whitebutton =Button(window, text="click here to start as white", command= lambda : player_one_color(True, whitebutton, blackbutton, window, frame))
+    blackbutton =Button(window, text="click here to start as black", command= lambda : player_one_color(False, whitebutton, blackbutton, window, frame))
     whitebutton.pack(side="left",padx=20)
     blackbutton.pack(side="right",padx=20)
     window.mainloop()
 
-def player_one_color(iswhite, button_1, button_2, window, frame, scorelabel):
-    if iswhite:
-        global player_one
-        player_one = chess.WHITE
-    else:
-        player_one = chess.BLACK
+def player_one_color(is_white, button_1, button_2, window, frame):
+    '''
+    assigns :param player_one a value based on the color chosen
+    :param is_white: used to store color of human, True = white, False = black
+    :param player_one: see :param iswhite
+    :param button_1: button to be removed
+    :param button_2: button to be removed
+    :param window: tkinter window used to display frame
+    :param frame: tkinter frame used to display chess board and pieces
+    '''
 
+    global player_one
+    player_one = is_white
     button_1.pack_forget()
     button_2.pack_forget()
+    player_or_computer(window,frame)
 
-    player_or_computer(window,frame,scorelabel)
+def player_or_computer(window,frame):
+    '''
+    called to alternate between computer and player making moves
+    :param window: tkinter window used to display frame
+    :param frame: tkinter frame used to display chess board and pieces
+    '''
 
-def player_or_computer(window,frame,scorelabel):
-    while True:
-        if board.is_checkmate():
-            break
-        if board.turn == player_one:
-            refresh_board(window,frame,scorelabel,True)
+    if board.turn == player_one:
+        refresh_board(window,frame,True)
 
-        else:
-            refresh_board(window,frame,scorelabel,False)
+    else:
+        refresh_board(window,frame,False)
 
 
-def refresh_board(window,frame,scorelabel,playerturn):
+def refresh_board(window,frame,playerturn):
     '''
     refreshes the board after every move
-    :param window:
-    :param frame:
+    :param window: tkinter window used to display frame
+    :param frame: tkinter frame used to display chess board and pieces
     :param fen:
-    :param scorelabel:
     :param playerturn:
     :return:
     '''
     global board
-    print("og fen white first\n",board.board_fen())
-    if not playerturn:
-        #board.push_uci()
+    if not playerturn and board.outcome() == None:
         mm.make_a_good_move(board)
+        # print(mm.evaluate(board))
+
+
 
     frame.destroy()
     frame = Frame(window,height=480,width=480)
@@ -89,64 +101,118 @@ def refresh_board(window,frame,scorelabel,playerturn):
     canvas.create_image(0,0,image = bg,anchor = "nw")
 
     #binds mouse button one to making a move if it is turn of player
-    # if playerturn:
-    canvas.bind("<Button-1>",func=lambda event: make_a_move(event,window,frame,scorelabel))
-    canvas.bind("<Button-3>",empty_first_request)
-
+    if board.outcome() == None:
+        canvas.bind("<Button-1>",func=lambda event: make_a_move(event,window,frame))
     imagedict = {'b':'bB.png','k':'bK.png','n':'bN.png','p':'bP.png','q':'bQ.png','r':'bR.png','B':'wB.png','K':'wK.png','N':'wN.png','P':'wP.png','Q':'wQ.png','R':'wR.png'}
 
     imagelist=[]
     fen = board.board_fen()
+
     if player_one == chess.BLACK:
-        fen = reverse_list(fen)
-    print("fen to print\n",fen)
+        fen = reverse_fen(fen)
+
     matrix =create_matrix(fen)
     for fileindex in range(len(matrix)):
 
         for square_index in range(len(matrix[0])):
-
-
-
 
             if matrix[fileindex][square_index] !=' ':
                 imagelist.append(PhotoImage(file = "Images/"+imagedict.get(matrix[fileindex][square_index])))
                 canvas.create_image(60*square_index, 60*fileindex, image=imagelist[-1], anchor = "nw")
 
 
-    scorelabel.pack_forget()
-    scorelabel.pack(side="bottom")
+
     frame.pack(side="left")
+
+    #game ending handling
+    print(board.outcome())
+    if board.outcome() != None:
+        window.after(50,lambda :determine_endgame(window))
+    # if board.is_checkmate():
+    #     if board.turn:
+    #         window.after(50,lambda : messagebox.askyesno("end of game","black won"))
+    #     else:
+    #         window.after(50,lambda : messagebox.askyesno("end of game","white won"))
+    # elif board.is_stalemate():
+    #     window.after(50,lambda : messagebox.askyesno("end of game","its a draw no one won"))
 
     window.mainloop()
 
+def determine_endgame(window):
+    end_scenario_list = {1:"checkmate",2:"stalemate",3:"insufficient material",4:"seventyfive moves",5:"fivefold repetition"}
+    out = board.outcome()
+    print(out.termination.value)
+    if out.termination.value ==1:
+        if board.turn:
+            if messagebox.askyesno("black won by checkmate \n do you want to play another game?"):
+                window.destroy()
+                game()
+        else:
+            if messagebox.askyesno("white won by checkmate \n do you want to play another game?"):
+                window.destroy()
+                game()
+
+    elif out.termination.value == 2:
+        if messagebox.askyesno("game drawn by stalemate \n do you want to play another game?"):
+            window.destroy()
+            game()
+
+    elif out.termination.value == 3:
+        if messagebox.askyesno("game drawn by insufficient material \n do you want to play another game?"):
+            window.destroy()
+            game()
+
+    elif out.termination.value ==4:
+        if messagebox.askyesno("game drawn by more than seventyfive moves \n do you want to play another game?"):
+            window.destroy()
+            game()
+
+    elif out.termination.value ==5:
+        if messagebox.askyesno("game drawn by fivefold repetition \n do you want to play another game?"):
+            window.destroy()
+            game()
+
+
 
 def reverse_uci(uci,alphabet):
+    '''
+    when playing as black the black pieces are displayed at the bottom
+    but the make_a_move function still uses the same coordinate system to get correct square
+    so to correct for this the function checks whether player_one is False(black) and reveses the uci if this is the case
+    :param uci: move to be reversed
+    :param alphabet: list containing first 8 letters of the alphabet
+    :return: returns reversed uci
+    '''
+
     newuci = ""
     for char in uci:
         if char in "123456789":
             newuci += str(9-int(char))
         else:
             newuci += alphabet[7-alphabet.index(char)]
-    # print(uci)
-    # print("new",newuci)
 
     return newuci
 
 
-def make_a_move(event, window, frame, score_label):
+def make_a_move(event, window, frame):
+    '''
+    function used to handle player moves by getting coördinates of where the player clicked
+    :param first_request: stores first clicked square
+    :param event: the event containing the coördinates of the click
+    :param window: tkinter window used to display frame
+    :param frame: tkinter frame used to display chess board and pieces
+    '''
+
     alphabet = ['a','b','c','d','e','f','g','h']
     global first_request
     legal = board.legal_moves
-    # TODO
-    # later utilised by letting ai make a move
-
 
     # checks if the player has not yet selected a square to move a piece from
     if first_request !=[]:
         #getting the uci code of the move
 
         uci = first_request[0]+str(first_request[1])+alphabet[event.x//60]+str(8-event.y//60)
-        if player_one == chess.BLACK:
+        if not player_one:
             uci =reverse_uci(uci,alphabet)
 
         #making sure move is not a null move
@@ -156,12 +222,11 @@ def make_a_move(event, window, frame, score_label):
             if uci[3] == "8" and uci[1] == "7" or uci[3] == "1" and uci[1] == "2":
                 m = create_matrix(board.board_fen())
                 if board.turn == chess.WHITE:
+                    #checks if there is a white pawn on the first square of the uci
                     if m[8 - first_request[1]][alphabet.index(first_request[0])] == "P":
                         uci += "q"
                 else:
-                    print("row",first_request[1]-1)
-                    print("collumn",7-alphabet.index(first_request[0]))
-                    print(m)
+                    #checks if there is a black pawn on the first square of the uci
                     if m[first_request[1]-1][7-alphabet.index(first_request[0])] == "p":
                         uci += "q"
 
@@ -173,7 +238,7 @@ def make_a_move(event, window, frame, score_label):
                 board.push_uci(uci)
 
                 #makes sure that when a move is made,
-                # that a new square can be selected to move a piece from
+                # a new square can be selected to move a piece from
                 # by emptying the variable first_request
                 first_request = []
 
@@ -181,19 +246,20 @@ def make_a_move(event, window, frame, score_label):
                 if board.is_checkmate():
 
                     if not board.turn == chess.WHITE:
-                        print("Black won by checkmate")
-                        score_label =update_score(window, frame,score_label)
-                        score_label.pack(side="bottom")
-                        refresh_board(window,frame,score_label,player_one == board.turn)
-                    else:
                         print("White won by checkmate")
-                        score_label =update_score(window, frame,score_label)
-                        score_label.pack(side="bottom")
-                        refresh_board(window,frame,score_label,player_one == board.turn)
+                        refresh_board(window,frame,player_one == board.turn)
+                    else:
+                        print("Black won by checkmate")
+                        refresh_board(window,frame,player_one == board.turn)
+
+                elif board.is_stalemate():
+                    print("Draw by stalemate")
+                    refresh_board(window,frame,player_one == board.turn)
+
 
                 else:
                     #refreshing board when there is no checkmate
-                    refresh_board(window,frame,score_label,player_one == board.turn)
+                    refresh_board(window,frame,player_one == board.turn)
         else:
 
             #emptying the variable of the first square so that game goes on after a misclick
@@ -203,13 +269,13 @@ def make_a_move(event, window, frame, score_label):
     first_request =[alphabet[event.x//60],8-event.y//60]
 
 
-def empty_first_request(event):
-    global first_request
-    first_request = []
-
-
-
 def create_matrix(fen):
+    '''
+    creates a matrix with empty spaces when there is no
+    :param fen: string containing the pieces and the empty spaces
+    :return: returns matrix of board
+    '''
+
     matrix =[]
     fen = fen.split("/")
     for file in fen:
@@ -223,37 +289,28 @@ def create_matrix(fen):
                 matrix[-1].append(square)
     return matrix
 
-def update_score(window, frame,score_label):
-    result =board.result()
-    print(result)
-    global currentscore
-    currentscore =str(int(currentscore[0])+ int(result[0])) + "-" +str(int(currentscore[2])+ int(result[2]))
-    print(currentscore)
-    score_label.pack_forget()
-    #score_label.destroy()
-    score_label.text = "Score = " + currentscore
-    score_label.pack(side="bottom")
+def display_board():
+    '''
+    initializes tkinter window, frame
+    :return: returns window and frame
+    '''
 
-    return score_label
-
-
-def display_board(score):
-    '''initializes tkinter window, frame and score Label'''
     window =Tk()
-    window.geometry("500x500")
-
-
-    scorelabel = Label(window,text="Score = "+score)
-    scorelabel.pack(side="bottom")
-
+    window.geometry("480x480")
     frame = Frame(window,height=480,width=480)
-    return window,frame,scorelabel
+    return window,frame
 
-def reverse_list(lst):
+def reverse_fen(fen):
+    '''
+    called to display blacks pieces at the bottom of the board
+    :param fen: list
+    :return: returns reversed fen
+    '''
+
     newstr =""
-    newstr+= lst[-1]
-    for index in range(1,len(lst)):
-        newstr+= lst[-1*index-1]
+    newstr+= fen[-1]
+    for index in range(1, len(fen)):
+        newstr+= fen[-1 * index - 1]
     return newstr
 
 
