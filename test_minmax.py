@@ -1,3 +1,5 @@
+#Copyright 2021, Siebe van Zwaal, All rights reserved.
+
 from unittest import TestCase
 import chess
 import minmax

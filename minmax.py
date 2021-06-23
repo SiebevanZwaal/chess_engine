@@ -1,3 +1,5 @@
+#Copyright 2021, Siebe van Zwaal, All rights reserved.
+
 import chess
 import random as r
 

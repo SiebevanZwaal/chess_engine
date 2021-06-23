@@ -1,17 +1,10 @@
+#Copyright 2021, Siebe van Zwaal, All rights reserved.
+
 from tkinter import *
 from tkinter import messagebox
 import chess
 import minmax as mm
 
-
-
-
-# TODO projectsamenvatting
-# TODO poster maken
-# TODO copyright toevoegen
-
-
-# TODO code nog twee keer nalopen
 
 #gui
 def game():
@@ -35,6 +28,7 @@ def choose_starting_color(window,frame):
     :param window: tkinter window used to display frame
     :param frame: tkinter frame used to display chessboard and pieces
     '''
+
     whitebutton =Button(window, text="click here to start as white", command= lambda : player_one_color(True, whitebutton, blackbutton, window, frame))
     blackbutton =Button(window, text="click here to start as black", command= lambda : player_one_color(False, whitebutton, blackbutton, window, frame))
     whitebutton.pack(side="left",padx=20)
@@ -139,21 +133,21 @@ def determine_endgame(window):
 
     if out.termination.value ==1:
         if board.turn:
-            if messagebox.askyesno("black won by checkmate \n do you want to play another game?"):
+            if messagebox.askyesno("game ended","black won by checkmate \n do you want to play another game?"):
                 window.destroy()
                 game()
         else:
-            if messagebox.askyesno("white won by checkmate \n do you want to play another game?"):
+            if messagebox.askyesno("game ended","white won by checkmate \n do you want to play another game?"):
                 window.destroy()
                 game()
 
     elif out.termination.value == 2:
-        if messagebox.askyesno("game drawn by stalemate \n do you want to play another game?"):
+        if messagebox.askyesno("game ended","game drawn by stalemate \n do you want to play another game?"):
             window.destroy()
             game()
 
     elif out.termination.value == 3:
-        if messagebox.askyesno("game drawn by insufficient material \n do you want to play another game?"):
+        if messagebox.askyesno("game ended","game drawn by insufficient material \n do you want to play another game?"):
             window.destroy()
             game()
 
