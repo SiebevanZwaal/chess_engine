@@ -177,6 +177,11 @@ def minimax_without_abp(board, depth):
 
 
 def evaluate(board):
+    '''
+    evaluates board based on pieces
+    :param board: current chess board
+    :return: returns score
+    '''
     start =0
     if not board.is_checkmate():
         for piece in board.board_fen():

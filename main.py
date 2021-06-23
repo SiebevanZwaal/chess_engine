@@ -117,13 +117,6 @@ def refresh_board(window,frame,playerturn):
 
     if board.outcome() != None:
         window.after(50,lambda :determine_endgame(window))
-    # if board.is_checkmate():
-    #     if board.turn:
-    #         window.after(50,lambda : messagebox.askyesno("end of game","black won"))
-    #     else:
-    #         window.after(50,lambda : messagebox.askyesno("end of game","white won"))
-    # elif board.is_stalemate():
-    #     window.after(50,lambda : messagebox.askyesno("end of game","its a draw no one won"))
 
     window.mainloop()
 
