@@ -6,12 +6,7 @@ import minmax as mm
 
 
 
-
-# TODO pushen naar github
-# TODO minimax documentatie
-# TODO weghalen prints
 # TODO projectsamenvatting
-# TODO planning bijwerken
 # TODO poster maken
 # TODO copyright toevoegen
 
@@ -24,7 +19,7 @@ def game():
     Initiates board and starts chess game
     '''
 
-    #making board
+    #generating board
     global board
     global first_request
     first_request =[]
@@ -125,7 +120,7 @@ def refresh_board(window,frame,playerturn):
     frame.pack(side="left")
 
     #game ending handling
-    print(board.outcome())
+
     if board.outcome() != None:
         window.after(50,lambda :determine_endgame(window))
     # if board.is_checkmate():
@@ -141,7 +136,7 @@ def refresh_board(window,frame,playerturn):
 def determine_endgame(window):
     end_scenario_list = {1:"checkmate",2:"stalemate",3:"insufficient material",4:"seventyfive moves",5:"fivefold repetition"}
     out = board.outcome()
-    print(out.termination.value)
+
     if out.termination.value ==1:
         if board.turn:
             if messagebox.askyesno("black won by checkmate \n do you want to play another game?"):
